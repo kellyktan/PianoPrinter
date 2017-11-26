@@ -180,8 +180,10 @@ class Receipt:
         return col_lead + col_width * note
 
 
-def onKeyEvent(r, note, channel, note_str):
-    r.recordFreeNote(note)
+def onKeyEvent(r, recording, note, channel, note_str):
+    if recording:
+        print note_str,
+        r.recordFreeNote(note)
     pygame.mixer.Channel(channel).stop()
     pygame.mixer.Channel(channel).play(pygame.mixer.Sound('notes/note_' +
                                                           note_str +
@@ -195,49 +197,57 @@ def main():
     pygame.mixer.init(frequency=0, size=8, channels=1, buffer=32)
     pygame.mixer.set_num_channels(15)
 
-    r = Receipt(239, 23)
-    r.startFreeRecording()
-    recording = True
+    r = None
+    quit = False
+    recording = False
 
-    while recording:
+    while not quit:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z:
-                    recording = False
+                if event.key == pygame.K_z:                     # quit
+                    quit = True
+                elif event.key == pygame.K_x:                   # toggle record
+                    recording = not recording
+                    if recording:
+                        r = Receipt(239, 23)
+                        r.startFreeRecording()
+                        print('recording start')
+                    else:
+                        r.endFreeRecording()
+                        print('\nrecording end')
+                        r.saveToText("out.txt")
+                        popen2.popen4("lpr -P Printer_USB_Thermal_Printer " +
+                                      "-o raw out.txt")
                 elif event.key == pygame.K_TAB:
-                    onKeyEvent(r, C1, 0, 'C1')
+                    onKeyEvent(r, recording, C1, 0, 'C1')
                 elif event.key == pygame.K_q:
-                    onKeyEvent(r, D1, 1, 'D1')
+                    onKeyEvent(r, recording, D1, 1, 'D1')
                 elif event.key == pygame.K_w:
-                    onKeyEvent(r, E1, 2, 'E1')
+                    onKeyEvent(r, recording, E1, 2, 'E1')
                 elif event.key == pygame.K_e:
-                    onKeyEvent(r, F1, 3, 'F1')
+                    onKeyEvent(r, recording, F1, 3, 'F1')
                 elif event.key == pygame.K_r:
-                    onKeyEvent(r, G1, 4, 'G1')
+                    onKeyEvent(r, recording, G1, 4, 'G1')
                 elif event.key == pygame.K_t:
-                    onKeyEvent(r, A1, 5, 'A1')
+                    onKeyEvent(r, recording, A1, 5, 'A1')
                 elif event.key == pygame.K_y:
-                    onKeyEvent(r, B1, 6, 'B1')
+                    onKeyEvent(r, recording, B1, 6, 'B1')
                 elif event.key == pygame.K_u:
-                    onKeyEvent(r, C2, 7, 'C2')
+                    onKeyEvent(r, recording, C2, 7, 'C2')
                 elif event.key == pygame.K_i:
-                    onKeyEvent(r, D2, 8, 'D2')
+                    onKeyEvent(r, recording, D2, 8, 'D2')
                 elif event.key == pygame.K_o:
-                    onKeyEvent(r, E2, 9, 'E2')
+                    onKeyEvent(r, recording, E2, 9, 'E2')
                 elif event.key == pygame.K_p:
-                    onKeyEvent(r, F2, 10, 'F2')
+                    onKeyEvent(r, recording, F2, 10, 'F2')
                 elif event.key == pygame.K_LEFTBRACKET:
-                    onKeyEvent(r, G2, 11, 'G2')
+                    onKeyEvent(r, recording, G2, 11, 'G2')
                 elif event.key == pygame.K_RIGHTBRACKET:
-                    onKeyEvent(r, A2, 12, 'A2')
+                    onKeyEvent(r, recording, A2, 12, 'A2')
                 elif event.key == pygame.K_RETURN:
-                    onKeyEvent(r, B2, 13, 'B2')
+                    onKeyEvent(r, recording, B2, 13, 'B2')
                 elif event.key == pygame.K_BACKSLASH:
-                    onKeyEvent(r, C3, 14, 'C3')
-
-    r.endFreeRecording()
-    r.saveToText("out.txt")
-    popen2.popen4("lpr -P Printer_USB_Thermal_Printer -o raw out.txt")
+                    onKeyEvent(r, recording, C3, 14, 'C3')
 
 
 if __name__ == "__main__":
