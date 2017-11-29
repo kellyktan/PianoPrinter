@@ -3,22 +3,11 @@ import popen2
 import time
 from PIL import Image
 import pygame
+import serial
 
-C1 = 0
-D1 = 1
-E1 = 2
-F1 = 3
-G1 = 4
-A1 = 5
-B1 = 6
-C2 = 7
-D2 = 8
-E2 = 9
-F2 = 10
-G2 = 11
-A2 = 12
-B2 = 13
-C3 = 14
+notes = {'C1': 0, 'D1': 1, 'E1': 2, 'F1': 3, 'G1': 4, 'A1': 5, 'B1': 6,
+         'C2': 7, 'D2': 8, 'E2': 9, 'F2': 10, 'G2': 11, 'A2': 12, 'B2': 13,
+         'C3': 14}
 
 col_lead = 10
 col_width = 16
@@ -26,9 +15,6 @@ col_num = 14
 col_end = 290
 row_height = 32
 row_height_half = row_height / 2
-
-# birthday_HALF = [[G1],None,None,[E1],[G2],None,None,None,[G1,E2],None,None,None,[C2],None,None,None,[G1,B1]]
-# river_flows = [ [A2],None,None,[A2],None,[A2],None,[A2],[D1],[A1],[A1,E2],[A2],[D2],[A1],[D2],[A1],[E1,A1,A2],None,[E1,D2],None,[A1,E2,A2],None,None,None,[B1,E2],None,[B2],None,None,None,[A1],None,[A1],None,None,None,None,[E1],[A1],[B1],None,[A2],None,None,None,None,[D2],None,[A1,E2],None,[E2],None,None,[D2],None,None,[B1,E2],None,[B2],[B2] ]
 
 
 class Receipt:
@@ -191,8 +177,11 @@ def onKeyEvent(r, recording, note, channel, note_str):
 
 
 def main():
-    pygame.init()
-    pygame.key.set_repeat()
+    try:
+        arduino = serial.Serial("/dev/cu.usbmodem1421", 9600, timeout=1)
+    except:
+        print("Please check the arduino port")
+        return
 
     pygame.mixer.init(frequency=0, size=8, channels=1)
     pygame.mixer.set_num_channels(15)
@@ -202,58 +191,30 @@ def main():
     recording = False
 
     while not quit:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z:                     # quit
-                    quit = True
-                    if recording:
-                        r.endFreeRecording()
-                        print('\nrecording end')
-                        r.saveToText("out.txt")
-                        popen2.popen4("lpr -P Printer_USB_Thermal_Printer " +
-                                      "-o raw out.txt")
-                elif event.key == pygame.K_x:                   # toggle record
-                    recording = not recording
-                    if recording:
-                        r = Receipt(239, 23)
-                        r.startFreeRecording()
-                        print('recording start')
-                    else:
-                        r.endFreeRecording()
-                        print('\nrecording end')
-                        r.saveToText("out.txt")
-                        popen2.popen4("lpr -P Printer_USB_Thermal_Printer " +
-                                      "-o raw out.txt")
-                elif event.key == pygame.K_TAB:
-                    onKeyEvent(r, recording, C1, 0, 'C1')
-                elif event.key == pygame.K_q:
-                    onKeyEvent(r, recording, D1, 1, 'D1')
-                elif event.key == pygame.K_w:
-                    onKeyEvent(r, recording, E1, 2, 'E1')
-                elif event.key == pygame.K_e:
-                    onKeyEvent(r, recording, F1, 3, 'F1')
-                elif event.key == pygame.K_r:
-                    onKeyEvent(r, recording, G1, 4, 'G1')
-                elif event.key == pygame.K_t:
-                    onKeyEvent(r, recording, A1, 5, 'A1')
-                elif event.key == pygame.K_y:
-                    onKeyEvent(r, recording, B1, 6, 'B1')
-                elif event.key == pygame.K_u:
-                    onKeyEvent(r, recording, C2, 7, 'C2')
-                elif event.key == pygame.K_i:
-                    onKeyEvent(r, recording, D2, 8, 'D2')
-                elif event.key == pygame.K_o:
-                    onKeyEvent(r, recording, E2, 9, 'E2')
-                elif event.key == pygame.K_p:
-                    onKeyEvent(r, recording, F2, 10, 'F2')
-                elif event.key == pygame.K_LEFTBRACKET:
-                    onKeyEvent(r, recording, G2, 11, 'G2')
-                elif event.key == pygame.K_RIGHTBRACKET:
-                    onKeyEvent(r, recording, A2, 12, 'A2')
-                elif event.key == pygame.K_RETURN:
-                    onKeyEvent(r, recording, B2, 13, 'B2')
-                elif event.key == pygame.K_BACKSLASH:
-                    onKeyEvent(r, recording, C3, 14, 'C3')
+        if arduino.in_waiting:
+            line = arduino.readline().decode().strip()
+            if line == 'QUIT':                     # quit
+                quit = True
+                if recording:
+                    r.endFreeRecording()
+                    print('\nrecording end')
+                    r.saveToText("out.txt")
+                    popen2.popen4("lpr -P Printer_USB_Thermal_Printer " +
+                                  "-o raw out.txt")
+            elif line == 'RECORD':                   # toggle record
+                recording = not recording
+                if recording:
+                    r = Receipt(239, 23)
+                    r.startFreeRecording()
+                    print('recording start')
+                else:
+                    r.endFreeRecording()
+                    print('\nrecording end')
+                    r.saveToText("out.txt")
+                    popen2.popen4("lpr -P Printer_USB_Thermal_Printer " +
+                                  "-o raw out.txt")
+            elif len(line) > 0:
+                onKeyEvent(r, recording, notes[line], notes[line], line)
 
 
 if __name__ == "__main__":
