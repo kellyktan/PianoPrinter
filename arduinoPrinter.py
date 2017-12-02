@@ -178,7 +178,7 @@ def onKeyEvent(r, recording, note, channel, note_str):
 
 def main():
     try:
-        arduino = serial.Serial("/dev/cu.usbmodem1421", 9600, timeout=1)
+        arduino = serial.Serial("/dev/cu.usbmodem1411", 9600, timeout=1)
     except:
         print("Please check the arduino port")
         return
