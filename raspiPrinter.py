@@ -132,18 +132,14 @@ def main():
     while not quit:
         if arduino.in_waiting:
             line = arduino.readline().decode().strip()
-            if line == 'QUIT':                     # quit
-                quit = True
+            if line == 'RECORDON':                   # toggle record
+                recording = True
+                r = Receipt()
+                r.startFreeRecording()
+                print('recording start')
+            elif line == 'RECORDOFF':
                 if recording:
-                    r.endFreeRecording()
-                    print('\nrecording end')
-            elif line == 'RECORD':                   # toggle record
-                recording = not recording
-                if recording:
-                    r = Receipt()
-                    r.startFreeRecording()
-                    print('recording start')
-                else:
+                    recording = False
                     r.endFreeRecording()
                     print('\nrecording end')
             elif len(line) > 0:

@@ -1,7 +1,10 @@
-int ports[16] = {13, 12, 11, 10, 9, 8, 7, 4, 3, 2, A5, A4, A3, A2, A1, 5};
-bool pressed[16] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
-unsigned long lastPressed[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-String notes[16] = {"C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2", "D2", "E2", "F2", "G2", "A2", "B2", "C3", "RECORD"};
+int ports[15] = {13, 12, 11, 10, 9, 8, 7, 4, 3, 2, A5, A4, A3, A2, A1};
+bool pressed[15] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+unsigned long lastPressed[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+String notes[15] = {"C1", "D1", "E1", "F1", "G1", "A1", "B1", "C2", "D2", "E2", "F2", "G2", "A2", "B2", "C3"};
+
+int isRecord = LOW;
+unsigned long lastRecord = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -23,13 +26,14 @@ void setup() {
   pinMode(13, INPUT_PULLUP); // C1
 
   pinMode(5, INPUT_PULLUP); // RECORD
+  pinMode(6, OUTPUT);       // RECORD LED
   
   Serial.begin(9600);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < 15; i++) {
     if (digitalRead(ports[i]) == LOW
         && !pressed[i]
         && (millis() > lastPressed[i] + 200 || lastPressed[i] == 0)) {
@@ -38,6 +42,14 @@ void loop() {
       Serial.println(notes[i]);
     } else if (digitalRead(ports[i]) == HIGH) {
       pressed[i] = false;
+    }
+
+    int record = digitalRead(5);
+    if (record != isRecord && (millis() > lastRecord + 200 || lastRecord == 0)) {
+      digitalWrite(6, record);
+      Serial.println(record == HIGH ? "RECORDON" : "RECORDOFF");
+      isRecord = record;
+      lastRecord = millis();
     }
   }
 }
