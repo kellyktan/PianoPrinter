@@ -1,3 +1,3 @@
-# \_piano\_printer\_
+# musicb•x
 
 Transcribing piano into music box scores since 2017...
