@@ -67,7 +67,7 @@ def imageThread(sequence):
 
         (note, timestamp) = sequence.get()
 
-    timestamp = max(curr.values)
+    timestamp = max(curr.values())
     while curr_row < int(row_height * (timestamp + 0.5 - start_time) / 0.25) + 5:
         img = Image.new('RGB', (col_end + 1, 1), "white")
         pixels = img.load()
